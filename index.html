@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<!------------------------------------------------------------------------------
+| Copyright (C) 2012-2013 Leap Motion, Inc. All rights reserved.               |
+| Leap Motion proprietary and confidential. Not for distribution.              |
+| Use subject to the terms of the Leap Motion SDK Agreement available at       |
+| https://developer.leapmotion.com/sdk_agreement, or another agreement         |
+| between Leap Motion and you, your company or other organization.             |
+------------------------------------------------------------------------------->
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Leap JavaScript Sample</title>
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="leap.js"></script>
+        <script>
+            $(document).ready(function() {
+                
+                $("#cursor").css("position", "absolute");
+                // Store frame for motion functions
+                var previousFrame;
+                var paused = false;
+                var pauseOnGesture = false;
+                var frames = 0;
+                // Setup Leap loop with frame callback function
+                var controllerOptions = {enableGestures: true};
+
+                Leap.loop(controllerOptions, function(frame) {
+                    if (paused) {
+                        return; // Skip this update
+                    }
+                    frames += 1;
+                    //console.log("FRAMES: "+frames);
+
+                    // Frame motion factors
+                    if (previousFrame) {
+
+                    }
+
+                    // Display Hand object data
+                    if (frame.hands.length > 0) {
+                        for (var i = 0; i < frame.hands.length; i++) {
+                            var hand = frame.hands[i];
+
+                            // Hand motion factors
+                            if (previousFrame) {
+
+                            }
+
+                            // IDs of pointables (fingers and tools) associated with this hand
+                            if (hand.pointables.length > 0) {
+
+                                for (var j = 0; j < hand.pointables.length; j++) {
+                                    var pointable = hand.pointables[j];
+                                    if (pointable.tool) {
+
+                                    }
+                                    else {
+
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    else {
+
+                    }
+
+                    // Display Pointable (finger and tool) object data
+                    if (frame.pointables.length > 0) {
+                        // console.log("# OF POINTABLES: "+frame.pointables.length);
+                        handlePointables(frame);
+                    }
+                    else {
+
+                    }
+
+
+                    // Display Gesture object data
+                    if (frame.gestures.length > 0) {
+                        if (pauseOnGesture) {
+                            togglePause();
+                        }
+                        for (var i = 0; i < frame.gestures.length; i++) {
+                            var gesture = frame.gestures[i];
+
+
+                            switch (gesture.type) {
+                                case "circle":
+
+                                    break;
+                                case "swipe":
+
+                                    break;
+                                case "screenTap":
+                                case "keyTap":
+
+                                    break;
+                                default:
+
+                            }
+
+                        }
+                    }
+                    else {
+
+                    }
+
+                    // Store frame for motion functions
+                    previousFrame = frame;
+                })
+
+                function handlePointables(frame) {
+
+                    var pointable = frame.pointables[0];
+                    var vecPosition = pointable.tipPosition;
+                    
+                   $("#cursor").css("left", (vecPosition[0].toFixed(1)*-1)+"px");
+                   console.log("position: " + $("#cursor").css("left"));
+//                   $("#cursor").animate({
+//                                        left: vecPosition[0].toFixed(1)*-1});
+
+
+                    $("#x-position").append(vecPosition[0].toFixed(1));
+
+                    for (var i = 0; i < frame.pointables.length; i++) {
+                        var pointable = frame.pointables[i];
+
+                        if (pointable.tool) {
+
+                        }
+                        else {
+
+                        }
+
+
+                    }
+                }
+
+                function vectorToString(vector, digits) {
+                    if (typeof digits === "undefined") {
+                        digits = 1;
+                    }
+                    return "(" + vector[0].toFixed(digits) + ", "
+                            + vector[1].toFixed(digits) + ", "
+                            + vector[2].toFixed(digits) + ")";
+                }
+
+                function togglePause() {
+                    paused = !paused;
+
+                }
+
+                function pauseForGestures() {
+
+                }
+
+
+            });
+
+            function checkLibrary() {
+                if (typeof Leap === "undefined") {
+                    document.getElementById("main").innerHTML = "The Leap JavaScript client library (leap.js file) was not found. Please download the library from the GitHub project at <a href='https://github.com/leapmotion/leapjs'>https://github.com/leapmotion/leapjs</a>."
+                    alert("The Leap JavaScript client library (leap.js file) was not found. Please download the latest version from the GitHub project at https://github.com/leapmotion/leapjs");
+                }
+            }
+        </script>
+    </head>
+    <body onload="checkLibrary()">
+        <h1>Leap JavaScript Sample</h1>
+        <div id="main">
+            <button id="pause" onclick="togglePause()">Pause</button>
+            <h5 id="x-position"> X:</h5>
+            <img id="cursor" src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Ski_trail_rating_symbol-green_circle.svg/64px-Ski_trail_rating_symbol-green_circle.svg.png" />
+        </div>
+    </body>
+</html>
