@@ -11,7 +11,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <title>Leap JavaScript Sample</title>
         <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" type="text/css"/>
-        
+
         <style>
             body {
                 overflow-y:scroll;
@@ -20,21 +20,30 @@
         </style>
         <script src="http://code.jquery.com/jquery-2.0.0.min.js"></script>
         <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
-        
+
         <script src="leap.js"></script>
         <script>
             $(document).ready(function() {
-                
+
                 getDPI();
                 //jquery-ui stuff
-                $("#test-button").button().click(function(event) { 
-                        console.log("paused!");
-                        alert("PAUSED!");
-                        paused = !paused; 
-                    });
-                    
-                    $("#test-button").css("height", "400");
-                    $("#test-button").css("width", "400");
+                $("#test-button").click(function(event) {
+                    paused = !paused;
+                    console.log("paused: " + paused);
+                });
+                
+                $("#test-button").css("background-color", "yellow");
+                $("#test-button").mouseover(function(eventData) {
+                    $("#test-button").css("background-color", "green");
+                });
+
+                $("#test-button").mouseout(function(eventData) {
+                    $("#test-button").css("background-color", "yellow");
+                });
+
+                $("#test-button").css("height", "400");
+                $("#test-button").css("width", "400");
+                $("#test-button").css("border-radius", "25px");
 
                 //handle leap stuff
                 $("#cursor").css("position", "absolute");
@@ -120,7 +129,7 @@
                                 case "screenTap":
                                     handleScreenTap(gesture);
                                     break;
-                                    
+
                                 case "keyTap":
 
                                     break;
@@ -139,7 +148,7 @@
                 })
 
                 function contains(container, value) {
-                    if(container.indexOf(value) === -1) {
+                    if (container.indexOf(value) === -1) {
                         return false;
                     } else {
                         return true;
@@ -149,96 +158,84 @@
                 function elementsWeJustExited(freshElements) {
                     var output = new Array();
                     //get elements in last frame that are no longer in this frame
-                    
-                    for(var i in elementsFromLastFrame) {
+
+                    for (var i in elementsFromLastFrame) {
                         var oldElement = elementsFromLastFrame[i];
-                        
-                        
+
+
                         //if old element is no longer in our current list of elements
                         //add it to be exited.
-                        if(!contains(freshElements, oldElement)) {
+                        if (!contains(freshElements, oldElement)) {
                             output.push(elementsFromLastFrame[i]);
                         }
                     }
-                    
+
                     return output;
                 }
-                
-                
-                
+
                 function elementsWeJustEntered(elements) {
                     var output = new Array();
-                    
-                    for(var i in elements) {
+
+                    for (var i in elements) {
                         var newElement = elements[i];
                         //if new element wasn't in here previously...
-                        if(!contains(elementsFromLastFrame, newElement)) {
+                        if (!contains(elementsFromLastFrame, newElement)) {
                             output.push(newElement);
                         }
                     }
                 }
-                
+
                 function elementFromPick(x, y) {
                     return document.elementFromPoint(x, y);
                 }
+
                 var previousElement = document;
                 function handlePointables(frame) {
 
-                    var pointable = frame.pointables[0];
-                    var vecPosition = pointable.tipPosition;
-                    
+                    if (frame.hands.length <= 0) {
+                        return;
+                    }
+                    var pointable = frame.hands[0];
+                    var vecPosition = pointable.palmPosition;
+
+
                     var xPos = getNewXPosition(vecPosition);
                     var yPos = getNewYPosition(vecPosition);
-                    
+
                     var element = elementFromPick(MMToPixels(xPos), MMToPixels(yPos));
-                    
-                    if(element !== previousElement) {
+
+                    if (element !== previousElement) {
                         $(previousElement).mouseout();
                         $(element).mouseenter();
                         previousElement = element;
                     }
-                   
-                    
-                    
-                   $("#cursor").css("left",MMToPixels(xPos));
-//                   console.log("x position: " + $("#cursor").css("left"));
-                   
-                   
-                   $("#cursor").css("top", MMToPixels(yPos));
-//                   console.log("y position: "+$("#curosor").css("top"));
-//                   $("#cursor").animate({
-//                                        left: vecPosition[0].toFixed(1)*-1});
 
+                    $("#cursor").css("left", MMToPixels(xPos));
+                    $("#cursor").css("top", MMToPixels(yPos));
 
-//                    $("#x-position").text("X: "+xPos);
-//                    $("#y-position").text("Y: "+yPos);
-                    
-                    $("#x-position").text("("+MMToPixels(xPos)+","+MMToPixels(yPos)+")")
-//                    fakeMouseOver(MMToPixels(xPos), MMToPixels(yPos));
-//                    fakeMouseOut(MMToPixels(xPos), MMToPixels(yPos));
+                    $("#position").text("(" + Math.ceil(MMToPixels(xPos)) + "," + Math.ceil(MMToPixels(yPos)) + ")");
+
                     for (var i = 0; i < frame.pointables.length; i++) {
                         var pointable = frame.pointables[i];
-
+                            
                         if (pointable.tool) {
 
                         }
                         else {
 
                         }
-
-
                     }
                 }
 
                 function handleScreenTap(gesture) {
                     var x = getNewXPosition(gesture.position);
                     var y = getNewYPosition(gesture.position);
-                     x = MMToPixels(x);
-                     y = MMToPixels(y);
-                    console.log("CLICKING: ("+x+","+y+")");
+                    x = MMToPixels(x);
+                    y = MMToPixels(y);
+                    console.log("CLICKING: (" + x + "," + y + ")");
                     console.log($("#test-button").position());
                     $(document.elementFromPoint(x, y)).click();
-        
+
                 }
 
                 function vectorToString(vector, digits) {
@@ -260,70 +257,62 @@
 
             });
 
-            
-            function fakeMouseOver(x, y) {
-                $(document.elementFromPoint(x, y)).mouseover();
-            }
-            
-            function fakeMouseOut(x, y) {
-                $(document.elementFromPoint(x, y)).mouseout();
-            }
             function getMaxMagnitude(heightInMM) {
                 return Math.abs(heightInMM * Math.tan(75));
             }
-            
+
             function getNewXPosition(vector) {
                 var x = vector[0]; //in mm
                 var y = vector[1]; //in mm
 //                console.log("RAW POSITION(mm): ("+x+","+y+")")
-                
+
                 var screenHeightInPixels = $("body").height();
                 var screenWidthInPixels = $("body").width();
 //                console.log("SCREEN DIMENSIONS (pixels): ("+screenWidthInPixels+","+screenHeightInPixels+")");
-                
+
                 var dpi_X = dpiX();
                 var dpi_Y = dpiY();
-                
+
 //                console.log("DOTS PER INCH (pixels): ("+dpi_X+","+dpi_Y+")");
                 var screenHeightInMM = inchesToMM(screenHeightInPixels / dpi_Y)
                 var screenWidthInMM = inchesToMM(screenWidthInPixels / dpi_X);
-                
+
 //                console.log("SCREEN DIMENSIONS (mm): ("+screenWidthInMM+","+screenHeightInMM+")");
-                
+
                 var halfLeapWidth = getMaxMagnitude(y);
 //                console.log("MAX DOMAIN (mm): ["+halfLeapWidth*-1+","+halfLeapWidth+"]");
-                
+
                 var multiplier = ((x + halfLeapWidth) / (halfLeapWidth * 2));
-                
+
 //                console.log("MULTIPLIER: "+multiplier) * 0.05;
-                
-                return Clamp(0, screenWidthInMM, multiplier*screenWidthInMM);
+
+                return Clamp(0, screenWidthInMM, multiplier * screenWidthInMM);
 //                var val =  Math.max(0, multiplier * screenWidthInMM);
 //                if(val >= screenWidthInPixels) {
 //                    return screenWidthInPixels;
 //                } else {
 //                    return val;
 //                }
-                    
-                
+
+
             }
-            
+
             function getNewYPosition(vector) {
                 var y = vector[1]; //in mm
                 var screenHeightInPixels = $(document).height();
-                
+
                 var dpi_Y = dpiY();//pixels per inch.
-                
+
                 //(height in pixels * 1inch/96 pixels) inches * (25.4 mm/ 1 inch)
-                var screenHeightInMM = inchesToMM(screenHeightInPixels/dpi_Y);
-                
-                
+                var screenHeightInMM = inchesToMM(screenHeightInPixels / dpi_Y);
+
+
                 // #mms/600mms
                 var multiplier = y / 600;
-                
+
                 //final value in MM
-                var finalY = (screenHeightInMM) - (multiplier*screenHeightInMM);
-                
+                var finalY = (screenHeightInMM) - (multiplier * screenHeightInMM);
+
                 //return the value between the two bounds, otherwise return the closest bound
                 return Clamp(0, screenHeightInMM, finalY);
             }
@@ -334,60 +323,61 @@
                     alert("The Leap JavaScript client library (leap.js file) was not found. Please download the latest version from the GitHub project at https://github.com/leapmotion/leapjs");
                 }
             }
-            
+
             function getDPI() {
                 dpi_X = document.getElementById('testdiv').offsetWidth;
-                console.log("X pixels per inch: "+dpi_X);
+                console.log("X pixels per inch: " + dpi_X);
                 dpi_Y = document.getElementById('testdiv').offsetHeight;
-                console.log("Y pixels per inch: "+dpi_Y);
+                console.log("Y pixels per inch: " + dpi_Y);
             }
-            
+
             function dpiX() {
                 //in inches
                 return document.getElementById('testdiv').offsetWidth;
             }
-            
+
             function dpiY() {
                 //in inches
                 return document.getElementById('testdiv').offsetHeight;
             }
+
             function inchesToMM(value) {
-                return value*25.4;
+                return value * 25.4;
             }
-            
+
             function MMToPixels(valueInMM) {
                 var MMPerInch = 25.4;
-                
-                return (valueInMM/MMPerInch) * dpiX();
+
+                return (valueInMM / MMPerInch) * dpiX();
             }
-            
+
             function Clamp(lowerBound, upperBound, value) {
                 var out = Math.max(lowerBound, value);
-                if( out >= upperBound) {
+                if (out >= upperBound) {
                     return upperBound;
                 } else {
                     return out;
                 }
-                
+
             }
         </script>
     </head>
     <body onload="checkLibrary()">
         <h1>Leap JavaScript Sample</h1>
         <div id="main">
-            <button id="pause" onclick="togglePause()">Pause</button>
-            <h5 id="x-position"> X:</h5>
-            <h5 id="y-position"> Y:</h5>
+            <h5 id="position"> X:</h5>
             <img id="cursor" src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Ski_trail_rating_symbol-green_circle.svg/64px-Ski_trail_rating_symbol-green_circle.svg.png" />
         </div>
         <br/><br/><br/><br/><br/><br/>
         <div id="jquery-ui-testing">
-            <button id="test-button">TEST!</button>
+            <center>
+                <div id="test-button">TEST!</div>
+            </center>
         </div>
-        
-        
+
+
         <!-- testdiv for finding our DPI -->
         <div id='testdiv' style='height: 1in; left: -100%; position: absolute; top: -100%; width: 1in;'></div>
-        
+
     </body>
 </html>
