@@ -31,7 +31,7 @@
                     paused = !paused;
                     console.log("paused: " + paused);
                 });
-                
+
                 $("#test-button").css("background-color", "yellow");
                 $("#test-button").mouseover(function(eventData) {
                     $("#test-button").css("background-color", "green");
@@ -72,6 +72,7 @@
 
                     // Display Hand object data
                     if (frame.hands.length > 0) {
+                        handlePointables(frame);
                         for (var i = 0; i < frame.hands.length; i++) {
                             var hand = frame.hands[i];
 
@@ -103,7 +104,7 @@
                     // Display Pointable (finger and tool) object data
                     if (frame.pointables.length > 0) {
                         // console.log("# OF POINTABLES: "+frame.pointables.length);
-                        handlePointables(frame);
+//                        handlePointables(frame);
                     }
                     else {
 
@@ -197,7 +198,7 @@
                     }
                     var pointable = frame.hands[0];
                     var vecPosition = pointable.palmPosition;
-
+                    console.log("POSITION: "+vecPosition);
 
                     var xPos = getNewXPosition(vecPosition);
                     var yPos = getNewYPosition(vecPosition);
@@ -217,7 +218,7 @@
 
                     for (var i = 0; i < frame.pointables.length; i++) {
                         var pointable = frame.pointables[i];
-                            
+
                         if (pointable.tool) {
 
                         }
@@ -274,7 +275,7 @@
                 var dpi_Y = dpiY();
 
 //                console.log("DOTS PER INCH (pixels): ("+dpi_X+","+dpi_Y+")");
-                var screenHeightInMM = inchesToMM(screenHeightInPixels / dpi_Y)
+                var screenHeightInMM = inchesToMM(screenHeightInPixels / dpi_Y);
                 var screenWidthInMM = inchesToMM(screenWidthInPixels / dpi_X);
 
 //                console.log("SCREEN DIMENSIONS (mm): ("+screenWidthInMM+","+screenHeightInMM+")");
