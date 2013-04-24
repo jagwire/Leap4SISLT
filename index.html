@@ -14,7 +14,7 @@
 
         <style>
             body {
-                overflow-y:scroll;
+                overflow-y:hidden;
                 overflow-x:hidden;
             }
         </style>
@@ -32,14 +32,45 @@
                     console.log("paused: " + paused);
                 });
 
-                $("#test-button").css("background-color", "yellow");
+                $("#test-button").css("background-color", "green");
                 $("#test-button").mouseover(function(eventData) {
-                    $("#test-button").css("background-color", "green");
+                    $("#test-button").css("background-color", "red");
                 });
 
                 $("#test-button").mouseout(function(eventData) {
-                    $("#test-button").css("background-color", "yellow");
+                    $("#test-button").css("background-color", "green");
                 });
+
+
+                $(".selectables").css("background-color", "white");
+                $(".selectables").css("opacity", "0.4");
+
+
+                $(".selectables").mouseover(function(eventData) {
+                    $(this).css("opacity", "0.9");
+                });
+
+                $(".selectables").mouseout(function(eventData) {
+                    $(this).css("opacity", "0.4");
+
+                });
+                
+                $(".selectables").click((function (eventData) { 
+                    $(this).css("background-color", "red");
+                }));
+
+                $(".top-item").css("height", "200");
+                $(".top-item").css("width", "200");
+                $(".top-item").css("border-radius", "25px");
+                $(".top-item").css("margin", "10px");
+                $(".top-item").css("float", "right");
+
+                $(".side-item").css("height", "100");
+                $(".side-item").css("width", "100");
+                $(".side-item").css("border-radius", "25px");
+                $(".side-item").css("margin", "10px");
+                $(".side-item").css("float", "bottom");
+
 
                 $("#test-button").css("height", "400");
                 $("#test-button").css("width", "400");
@@ -49,12 +80,22 @@
                 $("#cursor").css("position", "absolute");
                 $("#cursor").css("opacity", "0.4");
                 $("#cursor").css("z-index", 100);
+                
+                
+                
+                $(document).click(function(e) { 
+                    console.log(e.pageX+","+e.pageY+"     "+$(document).width()+","+$(document).height());
+                });
+                
                 // Store frame for motion functions
                 var previousFrame;
                 var paused = false;
                 var pauseOnGesture = false;
                 var frames = 0;
                 var elementsFromLastFrame = new Array();
+                var cursorElement = document.getElementById("cursor");
+                var framesToSkip = 2;
+
                 // Setup Leap loop with frame callback function
                 var controllerOptions = {enableGestures: true};
 
@@ -65,6 +106,9 @@
                     frames += 1;
                     //console.log("FRAMES: "+frames);
 
+                    if(frames % framesToSkip != 0) {
+                        return;
+                    }
                     // Frame motion factors
                     if (previousFrame) {
 
@@ -72,27 +116,11 @@
 
                     // Display Hand object data
                     if (frame.hands.length > 0) {
-                        handlePointables(frame);
                         for (var i = 0; i < frame.hands.length; i++) {
                             var hand = frame.hands[i];
 
                             // Hand motion factors
                             if (previousFrame) {
-
-                            }
-
-                            // IDs of pointables (fingers and tools) associated with this hand
-                            if (hand.pointables.length > 0) {
-
-                                for (var j = 0; j < hand.pointables.length; j++) {
-                                    var pointable = hand.pointables[j];
-                                    if (pointable.tool) {
-
-                                    }
-                                    else {
-
-                                    }
-                                }
 
                             }
                         }
@@ -104,7 +132,7 @@
                     // Display Pointable (finger and tool) object data
                     if (frame.pointables.length > 0) {
                         // console.log("# OF POINTABLES: "+frame.pointables.length);
-//                        handlePointables(frame);
+                        handlePointables(frame);
                     }
                     else {
 
@@ -112,10 +140,12 @@
 
 
                     // Display Gesture object data
+                    
+                    if(typeof frame.gestures == "undefined") {
+                        return;
+                    }
+                    
                     if (frame.gestures.length > 0) {
-                        if (pauseOnGesture) {
-                            togglePause();
-                        }
                         for (var i = 0; i < frame.gestures.length; i++) {
                             var gesture = frame.gestures[i];
 
@@ -135,13 +165,10 @@
 
                                     break;
                                 default:
-
                             }
-
                         }
                     }
                     else {
-
                     }
 
                     // Store frame for motion functions
@@ -195,15 +222,23 @@
 
                     if (frame.hands.length <= 0) {
                         return;
+                    }                    
+                    
+                    var pointable = frame.hands[0].pointables[0];
+                    
+                    if(pointable === null || pointable.tipPosition === null) {
+                        return;
                     }
-                    var pointable = frame.hands[0];
-                    var vecPosition = pointable.palmPosition;
-                    console.log("POSITION: "+vecPosition);
+                    
+                    var vecPosition = pointable.tipPosition;
 
                     var xPos = getNewXPosition(vecPosition);
                     var yPos = getNewYPosition(vecPosition);
 
-                    var element = elementFromPick(MMToPixels(xPos), MMToPixels(yPos));
+                    var element = elementFromPick(xPos, yPos);
+                    if (element === cursorElement) {
+                        return;
+                    }
 
                     if (element !== previousElement) {
                         $(previousElement).mouseout();
@@ -211,30 +246,20 @@
                         previousElement = element;
                     }
 
-                    $("#cursor").css("left", MMToPixels(xPos));
-                    $("#cursor").css("top", MMToPixels(yPos));
+                    $("#cursor").css("left", xPos);
+                    $("#cursor").css("top", yPos);
 
-                    $("#position").text("(" + Math.ceil(MMToPixels(xPos)) + "," + Math.ceil(MMToPixels(yPos)) + ")");
-
-                    for (var i = 0; i < frame.pointables.length; i++) {
-                        var pointable = frame.pointables[i];
-
-                        if (pointable.tool) {
-
-                        }
-                        else {
-
-                        }
-                    }
+                    var width = $(document).width();
+                    var height = $(document).height();
+//                    $("#position").text("(" + Math.ceil(xPos) + "," + Math.ceil(yPos)+" ("+width+","+height+")");                 
                 }
 
                 function handleScreenTap(gesture) {
                     var x = getNewXPosition(gesture.position);
                     var y = getNewYPosition(gesture.position);
-                    x = MMToPixels(x);
-                    y = MMToPixels(y);
+                    
                     console.log("CLICKING: (" + x + "," + y + ")");
-                    console.log($("#test-button").position());
+//                    console.log($("#test-button").position());
                     $(document.elementFromPoint(x, y)).click();
 
                 }
@@ -258,64 +283,39 @@
 
             });
 
-            function getMaxMagnitude(heightInMM) {
+            function getMaxWidth(heightInMM) {
                 return Math.abs(heightInMM * Math.tan(75));
             }
 
             function getNewXPosition(vector) {
-                var x = vector[0]; //in mm
-                var y = vector[1]; //in mm
-//                console.log("RAW POSITION(mm): ("+x+","+y+")")
+                
+                //get x in mm
+                var xPositionInPixels = MMToPixels(vector[0]);
+                var maxWidthInPixels = MMToPixels(getMaxWidth(vector[1]));
+                if(xPositionInPixels < 0) {
+                    xPositionInPixels -= (-1*maxWidthInPixels); 
+                } else {
+                    xPositionInPixels += maxWidthInPixels;
+                }
+                
+                var multiplier = xPositionInPixels/ (maxWidthInPixels*2);
+                var screenWidthInPixels = $(document).width();
+                
+                var output = screenWidthInPixels * multiplier;
 
-                var screenHeightInPixels = $("body").height();
-                var screenWidthInPixels = $("body").width();
-//                console.log("SCREEN DIMENSIONS (pixels): ("+screenWidthInPixels+","+screenHeightInPixels+")");
-
-                var dpi_X = dpiX();
-                var dpi_Y = dpiY();
-
-//                console.log("DOTS PER INCH (pixels): ("+dpi_X+","+dpi_Y+")");
-                var screenHeightInMM = inchesToMM(screenHeightInPixels / dpi_Y);
-                var screenWidthInMM = inchesToMM(screenWidthInPixels / dpi_X);
-
-//                console.log("SCREEN DIMENSIONS (mm): ("+screenWidthInMM+","+screenHeightInMM+")");
-
-                var halfLeapWidth = getMaxMagnitude(y);
-//                console.log("MAX DOMAIN (mm): ["+halfLeapWidth*-1+","+halfLeapWidth+"]");
-
-                var multiplier = ((x + halfLeapWidth) / (halfLeapWidth * 2));
-
-//                console.log("MULTIPLIER: "+multiplier) * 0.05;
-
-                return Clamp(0, screenWidthInMM, multiplier * screenWidthInMM);
-//                var val =  Math.max(0, multiplier * screenWidthInMM);
-//                if(val >= screenWidthInPixels) {
-//                    return screenWidthInPixels;
-//                } else {
-//                    return val;
-//                }
-
-
+//                console.log(output+":"+screenWidthInPixels*2);
+                return Clamp(0, screenWidthInPixels - 100, output);
             }
 
             function getNewYPosition(vector) {
-                var y = vector[1]; //in mm
+                var yPositionInPixels = MMToPixels(vector[1]);
                 var screenHeightInPixels = $(document).height();
 
-                var dpi_Y = dpiY();//pixels per inch.
-
                 //(height in pixels * 1inch/96 pixels) inches * (25.4 mm/ 1 inch)
-                var screenHeightInMM = inchesToMM(screenHeightInPixels / dpi_Y);
-
-
-                // #mms/600mms
-                var multiplier = y / 600;
-
-                //final value in MM
-                var finalY = (screenHeightInMM) - (multiplier * screenHeightInMM);
+                var finalY = screenHeightInPixels - yPositionInPixels;
 
                 //return the value between the two bounds, otherwise return the closest bound
-                return Clamp(0, screenHeightInMM, finalY);
+                return Clamp(0, screenHeightInPixels - 100, finalY);
             }
 
             function checkLibrary() {
@@ -363,17 +363,33 @@
             }
         </script>
     </head>
-    <body onload="checkLibrary()">
-        <h1>Leap JavaScript Sample</h1>
+    <body onload="checkLibrary()" bgcolor="black">
+        <!--<h1>Leap JavaScript Sample</h1>-->
+        <img id="cursor" src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Ski_trail_rating_symbol-green_circle.svg/64px-Ski_trail_rating_symbol-green_circle.svg.png" />
+
         <div id="main">
-            <h5 id="position"> X:</h5>
-            <img id="cursor" src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Ski_trail_rating_symbol-green_circle.svg/64px-Ski_trail_rating_symbol-green_circle.svg.png" />
-        </div>
-        <br/><br/><br/><br/><br/><br/>
-        <div id="jquery-ui-testing">
-            <center>
-                <div id="test-button">TEST!</div>
-            </center>
+            <!--<h5 id="position" style="color:white"> X:</h5>-->
+            <div id="top-divs">
+                <!-- five divs along the top -->
+                <div class="top-item selectables"></div>
+                <div class="top-item selectables"></div>
+                <div class="top-item selectables"></div>
+                <div class="top-item selectables"></div>
+                <div class="top-item selectables"></div>
+            </div>
+            <br />
+            <br />
+            <div style="height:150px"></div>
+            <div id="left-side-divs">
+                <div class="side-item selectables"></div>
+                <div class="side-item selectables"></div>
+                <div class="side-item selectables"></div>
+                <div class="side-item selectables"></div>
+                <div class="side-item selectables"></div>
+
+            </div>
+
+            
         </div>
 
 
